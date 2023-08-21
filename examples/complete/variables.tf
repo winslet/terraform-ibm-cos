@@ -2,7 +2,6 @@ variable "ibmcloud_api_key" {
   type        = string
   description = "The IBM Cloud API Token"
   sensitive   = true
-  default = "L11RpzVMFdZsbeaJidqMj9xiku59F_LwpwNaCvPOQvNP"
 }
 
 variable "prefix" {
