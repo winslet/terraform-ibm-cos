@@ -109,7 +109,8 @@ module "cbr_zone" {
 # - Monitoring
 # - Activity Tracking
 module "cos_bucket1" {
-  source                              = "../../"
+  source                              = "terraform-ibm-modules/cos/ibm"
+  version                             = "6.10.1"
   resource_group_id                   = module.resource_group.resource_group_id
   region                              = var.region
   cross_region_location               = null
@@ -154,50 +155,6 @@ module "cos_bucket1" {
           value = "test"
         }
       ]
-      rule_contexts = [{
-        attributes = [
-          {
-            "name" : "endpointType",
-            "value" : "private"
-          },
-          {
-            name  = "networkZoneId"
-            value = module.cbr_zone.zone_id
-        }]
-      }]
-    }
-  ]
-}
-
-# We will reuse the COS instance, Key Protect instance and Key Protect Key Ring / Key that were created in cos_bucket1 module.
-# Create COS bucket-2 with:
-# - Cross Region Location
-# - Encryption
-# - Monitoring
-# - Activity Tracking
-module "cos_bucket2" {
-  source                              = "../../"
-  depends_on                          = [module.cos_bucket1] # Required since bucket1 creates the IAM authorization policy
-  bucket_name                         = "${var.prefix}-bucket-2"
-  add_bucket_name_suffix              = true
-  management_endpoint_type_for_bucket = var.management_endpoint_type_for_bucket
-  resource_group_id                   = module.resource_group.resource_group_id
-  region                              = null
-  cross_region_location               = var.cross_region_location
-  archive_days                        = null
-  sysdig_crn                          = module.observability_instances.sysdig_crn
-  activity_tracker_crn                = local.at_crn
-  create_cos_instance                 = false
-  existing_cos_instance_id            = module.cos_bucket1.cos_instance_id
-  skip_iam_authorization_policy       = true # Required since bucket1 creates the IAM authorization policy
-  # disable retention for test environments - enable for stage/prod
-  retention_enabled = false
-  kms_key_crn       = module.key_protect_all_inclusive.keys["${local.key_ring_name}.${local.key_name}"].crn
-  bucket_cbr_rules = [
-    {
-      description      = "sample rule for bucket 2"
-      enforcement_mode = "report"
-      account_id       = data.ibm_iam_account_settings.iam_account_settings.account_id
       rule_contexts = [{
         attributes = [
           {
